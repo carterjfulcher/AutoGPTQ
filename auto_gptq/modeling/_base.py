@@ -248,8 +248,8 @@ class BaseGPTQForCausalLM(nn.Module, PushToHubMixin):
                             break
                 layer_inputs.append(move_to_device(inp, self.data_device))
                 
-                if kwargs["attention_mask"] is not None:
-                    attention_masks.append(kwargs["attention_mask"].to(self.data_device))
+                if (attention_mask := kwargs.get("attn_mask")) is not None:
+                    attention_masks.append(attention_mask.to(self.data_device))
                 else:
                     attention_masks.append(None)
                 
@@ -258,7 +258,7 @@ class BaseGPTQForCausalLM(nn.Module, PushToHubMixin):
                     position_ids.append(move_to_device(pos_ids, self.data_device))
                 one_kwargs = dict()
                 for k, v in kwargs.items():  # make sure other arguments also be captured
-                    if k not in ["hidden_states", "attention_mask", "position_ids"]:
+                    if k not in ["hidden_states", "attn_mask", "position_ids"]:
                         if isinstance(v, torch.Tensor):
                             one_kwargs[k] = move_to_device(v, self.data_device)
                         else:
@@ -349,7 +349,7 @@ class BaseGPTQForCausalLM(nn.Module, PushToHubMixin):
                     layer_input = move_to_device(layer_inputs[j], cur_layer_device)
                     layer_attention_mask = move_to_device(attention_masks[j], cur_layer_device)
                     additional_layer_inputs = {
-                        "attention_mask": layer_attention_mask
+                        "attn_mask": layer_attention_mask
                     }
                     layer_position_ids = None if not position_ids else move_to_device(position_ids[j], cur_layer_device)
                     if layer_position_ids is not None:
@@ -383,7 +383,7 @@ class BaseGPTQForCausalLM(nn.Module, PushToHubMixin):
                 layer_input = move_to_device(layer_inputs[j], cur_layer_device)
                 layer_attention_mask = move_to_device(attention_masks[j], cur_layer_device)
                 additional_layer_inputs = {
-                    "attention_mask": layer_attention_mask
+                    "attn_mask": layer_attention_mask
                 }
                 layer_position_ids = None if not position_ids else move_to_device(position_ids[j], cur_layer_device)
                 if layer_position_ids is not None:
